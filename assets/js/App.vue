@@ -1,24 +1,29 @@
 <template>
-    <v-container>
-        <h1>Regarderou</h1>
-
-        <v-row>
+    <v-container class="d-flex flex-column justify-center test">
+        <v-row class="d-flex flex-column justify-center">
+            <v-col class="d-flex">
+                <h1 class="align-self-end white--text">Regarderou</h1>
+            </v-col>
             <v-col>
                 <v-autocomplete
                     @update:search="search($event)"
+                    v-model="input"
                     :items="results.results"
-                    class="mx-4"
-                    label="search"
                     :loading="loading"
+                    :placeholder="this.placeholder"
                     clearable
                     hide-selected
+                    autofocus
+                    color="white"
                     hide-no-data
-                ></v-autocomplete>
+                    variant="outlined"
+                >
+                </v-autocomplete>
             </v-col>
         </v-row>
 
-        <v-row justify="space-around">
-            <v-card v-if="providers && results.results" width="1000">
+        <v-row v-if="providers && results.results && input !== null" justify="space-around">
+            <v-card  width="1000">
                 <v-img
                     height="500px"
                     :src="providers && results.results ? 'https://www.themoviedb.org/t/p/original/' + results.results[0].backdrop_path : 'https://cdn.pixabay.com/photo/2020/07/12/07/47/bee-5396362_1280.jpg'"
@@ -39,11 +44,13 @@
 
                 <v-card-text>
                     <div v-if="providers && providers.results && providers.results.FR" v-for="provider in providers.results.FR.flatrate">
-                        <h2>{{ provider.provider_name }}</h2>
-                        <img :src="'https://www.themoviedb.org/t/p/original/' + provider.logo_path" :alt="provider.provider_name" class="rounded-xl">
-                        <div> ({{ results.results[0].release_date }})</div>
+                        <h2>Disponible sur :</h2>
+                        <div class="d-flex">
+                            <img :src="'https://www.themoviedb.org/t/p/original/' + provider.logo_path" :alt="provider.provider_name" class="rounded-lg mr-2" width="64">
+                            <div>{{ provider.provider_name }}</div>
+                        </div>
                     </div>
-                    <div v-if="providers && providers.results && providers.results.FR && !providers.results.FR.flatrate">Pas de résultats.</div>
+                    <div v-if="providers && providers.results && providers.results.FR && !providers.results.FR.flatrate">Ce film n'est pas disponible en streaming.</div>
                 </v-card-text>
             </v-card>
         </v-row>
@@ -65,7 +72,8 @@ export default {
             movieId: null,
             input: null,
             results: [],
-            searchTimeout: null
+            searchTimeout: null,
+            placeholder: "Dune"
         }
     },
     methods: {
@@ -89,6 +97,8 @@ export default {
                             this.loading = false;
                         }),
                     500);
+            } else {
+                this.loading = false;
             }
         },
         fetch() {
@@ -101,7 +111,6 @@ export default {
             ) => {
                 this.providers = providers.data;
                 this.movie = movie.data;
-                console.log(this.movie);
             })).catch((error) => {
                 console.error(error);
             }).finally(() => {
@@ -115,5 +124,9 @@ export default {
 <style lang="scss">
 .white--text {
     color: white !important;
+}
+
+.test {
+    min-height: 100vh;
 }
 </style>
