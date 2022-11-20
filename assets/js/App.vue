@@ -73,7 +73,9 @@ export default {
             input: null,
             results: [],
             searchTimeout: null,
-            placeholder: "Dune"
+            trending: [],
+            placeholder: '',
+            loadingTrending: true,
         }
     },
     methods: {
@@ -86,7 +88,7 @@ export default {
                 this.loading = true;
 
                 this.searchTimeout = setTimeout(
-                    () => axios.get('https://api.themoviedb.org/3/search/movie?api_key=f904a8044e5207e6d815f07513b7946b&language=en-US&query=' + value + '&page=1&include_adult=false')
+                    () => axios.get('https://api.themoviedb.org/3/search/movie?api_key=' + process.env.API_KEY + '&language=en-US&query=' + value + '&page=1&include_adult=false')
                         .then((r) => {
                             this.results = r.data;
                             this.movieId = this.results.results[0].id;
@@ -103,8 +105,8 @@ export default {
         },
         fetch() {
             axios.all([
-                axios.get('https://api.themoviedb.org/3/movie/' + this.movieId + '/watch/providers?api_key=f904a8044e5207e6d815f07513b7946b'),
-                axios.get('https://api.themoviedb.org/3/movie/' + this.movieId + '?api_key=f904a8044e5207e6d815f07513b7946b&language=fr-FR'),
+                axios.get('https://api.themoviedb.org/3/movie/' + this.movieId + '/watch/providers?api_key=' + process.env.API_KEY),
+                axios.get('https://api.themoviedb.org/3/movie/' + this.movieId + '?api_key=' + process.env.API_KEY + '&language=fr-FR'),
             ]).then(axios.spread((
                 providers,
                 movie
@@ -117,6 +119,27 @@ export default {
                 this.loading = false;
             });
         },
+        getTrending() {
+            this.loadingTrending = true;
+
+            axios.get('https://api.themoviedb.org/3/trending/movie/week?api_key=' + process.env.API_KEY)
+                .then((r) => {
+                    for (let i = 0; i < r.data.results.length; i++) {
+                        this.trending.push(r.data.results[i].title);
+                    }
+                    this.getRandomPlaceholder();
+                }).catch((error) => {
+                    console.error(error);
+            }).finally(() => {
+                this.loadingTrending = false;
+            });
+        },
+        getRandomPlaceholder() {
+            this.placeholder = this.trending[Math.floor(Math.random() * (this.trending.length))];
+        }
+    },
+    created() {
+        this.getTrending();
     }
 }
 </script>
